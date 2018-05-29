@@ -20,8 +20,6 @@ setwd("~/Desktop/Northeastern/slim/SLiM_R")
 ## Set results path
 results_path <- "~/Desktop/Northeastern/slim/SLiM_R"
 
-##Will have to specify directories relative to TTT_2pheno_2envi when I complete the script
-
 # Load libraries:
 library(Hmisc) # Package required to calculate Pearson correlation with p-val
 
