@@ -1,0 +1,415 @@
+// Initial random seed:
+// 1498483376183
+// changed mutation stack policy to "l", so that when a new mutation occurs at that position it replaces the initial mutation, rather than stacking on top of it. 
+
+/*/////////////////////////////
+INITIALIZE AND DEFINE CONSTANTS
+*//////////////////////////////
+
+initialize() {
+//define constants
+	defineConstant("my_seed", getSeed()); 
+	defineConstant("sigma_C", 0.027); // smaller is weaker competition; weaker competition allows more similar phenotypes to coexist
+	defineConstant("sigma_K", 1.25); // smaller is stronger stabilizing selection, // larger is weaker (wider) stabilizing selection
+	defineConstant("sigma_xy", 0.25); // set sigma_xy based on dispersal scale!! (modified child callback)
+	defineConstant("sigma_d", 0.009); // set sigma_xy based on dispersal scale!! 
+	defineConstant("sigma_stat", 4.0); //variation for the first 4Ne generation
+	defineConstant("sigma_M", 0.5); // larger is less assortative mating
+	defineConstant("N", 1000); // samples size
+	defineConstant("r", 1e-05); // recombination rate
+	defineConstant("QTL_prop", 0.1); // proportion of element that is QTL
+	defineConstant("path", "/home/br.ford/br.ford_remote/slim/results/");
+	
+	
+	initializeSLiMOptions(dimensionality="xy"); 
+	initializeMutationRate(1e-6);
+	
+//initialize mutation types
+	initializeMutationType("m1", 0.5, "f", 0.0);        // neutral
+	initializeMutationType("m2", 0.5, "n", 0.0, 0.1);   // QTL
+	m2.convertToSubstitution = F;
+	m2.color = "red";
+	
+	initializeGenomicElementType("g0", c(m1), c(1));
+	initializeGenomicElementType("g1", c(m1, m2), c(0.90, QTL_prop)); //QTL
+	
+	// start chromosome 1
+	initializeGenomicElement(g1, 0, 50000); // QTL mutations
+	
+	// chrom 2, neut
+	initializeGenomicElement(g0, 50001, 100000); // neut	
+	
+	// start chromosome 3
+	initializeGenomicElement(g1, 100001, 150000); // QTL mutations
+	
+	// chrom 4, neut
+	initializeGenomicElement(g0, 150001, 200000); // neut	
+	
+	// start chromosome 5
+	initializeGenomicElement(g1, 200001, 250000); // QTL mutations
+	
+	// chrom 6, neut
+	initializeGenomicElement(g0, 250001, 300000); // neut	
+	
+	// start chromosome 7
+	initializeGenomicElement(g1, 300001, 350000); // QTL mutations
+	
+	initializeRecombinationRate(c(rep(c(r, 0.5), 6), r), 
+	ends=c(50000, 50001, 100000, 100001, 150000, 150001, 
+			200000, 200001, 250000, 250001, 300000, 300001, 350000));
+	
+	initializeInteractionType(1, "xy", reciprocal=T, maxDistance=sigma_C*5);     // competition
+	i1.setInteractionFunction("n", 1.0, sigma_C); // if they are close in space and have similar phenotype, that is max interaction strength
+
+	initializeInteractionType(2, "xy", reciprocal=T);     // mate choice
+	i2.setInteractionFunction("n", 1.0, sigma_M);
+
+	defineConstant("QTL_mu", c(0, 0));
+//	defineConstant("QTL_cov", 0);
+	defineConstant("QTL_var", sigma_K);
+	defineConstant("QTL_sigma", matrix(c(QTL_var, QTL_cov, QTL_cov, QTL_var), nrow=2));
+	
+	catn();
+	catn("QTL DFE means: ");
+	print(QTL_mu);
+	catn();
+	catn("QTL DFE variance-covariance matrix: ");
+	print(QTL_sigma);
+}
+
+/*/////////////////////
+ADD POP AND DEFINE MAPS
+*//////////////////////
+
+1 late() {
+
+	param = "sigma_C" + "\t" + sigma_C + "\n" + "sigma_K" + "\t" + sigma_K + "\n" + "sigma_M" + "\t" + sigma_M + "\n" + "sigma_xy" + "\t" + sigma_xy + "\n" + "sigma_d" + "\t" + sigma_d + "\n" + "QTL_cov" + "\t" + QTL_cov + "\n" + "QTL_var" + "\t" + QTL_var + "\n" + "sigma_stat" + "\t" + sigma_stat + "\n" + "QTL_prop" + "\t" + QTL_prop;
+        writeFile(paste(c(path, my_seed, "_", "simulation_parameters.txt"), sep=""), param);
+
+	out_header = "sim.generation" + "\t" + "sample_size" + "\t" + "mean_phen0" + "\t" + "sd_phen0" + "\t" + "corr0_1" + "\t" + "corr0_2" + "\t" + "mean_phen1" + "\t" + "sd_phen1" + "\t" + "corr1_1" + "\t" + "corr1_2";
+	writeFile(paste(c(path, my_seed, "_", sigma_K, "_outputPhenEnv_2trait_1mut_2env.txt"), sep=""), out_header, append=T);
+
+	sim.addSubpop("p1", N);
+	
+	p1.setSpatialBounds(c(0.0, 0.0, 1.0, 1.0));
+	
+	// map 1 is an adaptive map (after 1000 gen); longitudinal pattern
+	defineConstant("mapValues", rnorm(25, 0, 0.5)+ (rep(c(-1.0,-0.5,0.0,0.5,1.0), 5)));
+	p1.defineSpatialMap("map1", "xy", c(5, 5), mapValues, interpolate=T,
+		valueRange=c(-1.8, 1.8), colors=c("red", "yellow"));
+	
+	/// map 2 is an adaptive map (after 1000 gen); latitudinal pattern
+	defineConstant("map2Values", rnorm(25, 0, 0.5)+ c(rep(1.0, 5), rep(0.5, 5), rep(0.0, 5), rep(-0.5, 5), rep(-1.0, 5)));
+	p1.defineSpatialMap("map2", "xy", c(5, 5), map2Values, interpolate=T,
+		valueRange=c(-1.8, 1.8), colors=c("red", "yellow"));
+	
+	// map 3 is a static map (1st 4000 gen)
+	defineConstant("map3Values", rep(0.0, 25));
+	p1.defineSpatialMap("map3", "xy", c(5, 5), map3Values, interpolate=T,
+	valueRange=c(-3.0, 3.0), colors=c("blue", "white"));
+	
+	for (ind in p1.individuals)
+		ind.setSpatialPosition(p1.pointUniform());
+
+
+}
+
+/*////////////////////////
+MODIFY INDIVIDUAL POSITION
+*////////////////////////
+
+modifyChild() {
+	// set offspring position based on parental position
+	do
+		pos = c(parent1.spatialPosition[0:1] + rnorm(2, 0, sigma_d));
+	while (!p1.pointInBounds(pos));
+	child.setSpatialPosition(pos);
+	
+	return T;
+}
+
+/*///////////////////////////
+ADD EFFECT SIZES OF MUTATIONS
+*///////////////////////////
+
+late() {
+	// add effect sizes into new mutation objects
+	// this must come before the next late() event!
+	all_m2 = sim.mutationsOfType(m2);
+	new_m2 = all_m2[all_m2.originGeneration == sim.generation];
+	
+	if (size(new_m2))
+	{
+		// draw mutational effects for all new mutations at once; this is
+		// faster than drawing them individually if there are many of them
+		effects = rmvnorm(size(new_m2), QTL_mu, QTL_sigma);
+		
+		// remember all drawn effects, for our final output
+		old_effects = sim.getValue("all_effects");
+		sim.setValue("all_effects", rbind(old_effects, effects));
+		
+		for (i in seqAlong(new_m2))
+		{
+			e = drop(effects[i,]);	// each draw is one row in the matrix result from rmvnorm
+			mut = new_m2[i];
+			mut.setValue("e0", e[0]);
+			mut.setValue("e1", e[1]);
+			
+		}
+	}
+}
+
+/*///////////////////////////
+SET PHENOTYPE VALUES
+*///////////////////////////
+
+late() {
+	// construct phenotypes from additive effects of QTL mutations
+	// this must come after the previous late() event!
+	inds = sim.subpopulations.individuals;
+
+	for (ind in inds)
+	{
+		muts = ind.genomes.mutationsOfType(m2);
+		// we have to special-case when muts is empty, since getValue()
+		// on an empty vector is NULL and sum(NULL) is an error
+		if (size(muts)) {
+			ind.setValue("phenotype0", sum(muts.getValue("e0")));
+			ind.setValue("phenotype1", sum(muts.getValue("e1")));
+		} else {
+			ind.setValue("phenotype0", 0);
+			ind.setValue("phenotype1", 0);
+		}
+	}
+
+	// color individuals according to phenotype
+	if ((sim.generation % 2 == 0) & (sim.generation > 1)) {
+	inds.color = p1.spatialMapColor("map1", asFloat(inds.getValue("phenotype0")));
+	}
+	else {
+	inds.color = p1.spatialMapColor("map1", asFloat(inds.getValue("phenotype1")));
+	}
+
+	// evaluate interactions
+	i1.evaluate();
+	i2.evaluate();
+
+	if (sim.generation % 200 == 0){ 
+		// get positions of all m2 mutations and store in Q
+		g = sim.subpopulations.genomes;
+		// get the unique mutations in the sample, sorted by position
+		m = sortBy(unique(g.mutationsOfType(m2)), "position"); 
+		mut = sim.mutationsOfType(m2);
+
+// env for map 1
+		env=c();
+		for (ind in inds){
+  			env = c(env, p1.spatialMapValue("map1", ind.spatialPosition[0:1]));
+  		}
+// env for map 2
+		env2=c();
+		for (ind in inds){
+  			env2 = c(env2, p1.spatialMapValue("map2", ind.spatialPosition[0:1]));
+  		}
+  		
+		corr0_1 = sum((env- mean(env))/sd(env)*(inds.getValue("phenotype0")-mean(inds.getValue("phenotype0")))/sd(inds.getValue("phenotype0")))/(size(inds.getValue("phenotype0"))-1);
+		corr0_2 = sum((env2- mean(env2))/sd(env2)*(inds.getValue("phenotype0")-mean(inds.getValue("phenotype0")))/sd(inds.getValue("phenotype0")))/(size(inds.getValue("phenotype0"))-1);
+		
+		corr1_1 = sum((env- mean(env))/sd(env)*(inds.getValue("phenotype1")-mean(inds.getValue("phenotype1")))/sd(inds.getValue("phenotype1")))/(size(inds.getValue("phenotype1"))-1);
+		corr1_2 = sum((env2- mean(env2))/sd(env2)*(inds.getValue("phenotype1")-mean(inds.getValue("phenotype1")))/sd(inds.getValue("phenotype1")))/(size(inds.getValue("phenotype1"))-1);
+
+		out = paste(c(sim.generation, size(m), mean(inds.getValue("phenotype0")), sd(inds.getValue("phenotype0")), corr0_1, corr0_2, mean(inds.getValue("phenotype1")), sd(inds.getValue("phenotype1")), corr1_1, corr1_2), sep="\t");
+		writeFile(paste(c(path, my_seed, "_", sigma_K, "_outputPhenEnv_2trait_1mut_2env.txt"), sep=""), out, append=T);
+   }
+	tot_fit = p1.cachedFitness(NULL);
+	tot_fit_out = paste(c(tot_fit));
+	writeFile(paste(c(path, my_seed, "_", "_totalFitness_2trait_1mut_2env.txt"), sep=""), tot_fit_out, append=T);
+   
+}
+
+/*///////////////////////////
+EVALUATE FITNESS
+*///////////////////////////
+
+fitness(NULL) {    // reward proximity to the optimum
+	location = individual.spatialPosition[0:1];
+//remember, map3 is a static map, allowing inds to gain some genetic variation
+	optimum1 = subpop.spatialMapValue("map1", location);
+	optimum2 = subpop.spatialMapValue("map2", location);
+	optimum3 = subpop.spatialMapValue("map3", location);
+	
+	if (sim.generation < 4000){
+		f1 = exp(-0.5*((individual.getValue("phenotype0")-optimum3)^2*sigma_stat + (individual.getValue("phenotype1")-optimum3)^2*sigma_stat));
+		f1_out = paste(c(sim.generation, f1));
+		writeFile(paste(c(path, my_seed, "_", "_Fitness1_2trait_1mut_2env.txt"), sep=""), f1_out, append=T);
+		
+		return exp(-0.5*((individual.getValue("phenotype0")-optimum3)^2*sigma_stat + (individual.getValue("phenotype1")-optimum3)^2*sigma_stat));
+			// to create genetic variance to occupy all envi niches, it's important to confirm
+			// that the fitness at the extreme values of the environment (~-3.6 to +3.6) is not 
+			// much lower than the fitness at the average
+			// if it is, the pop will occupy ave envi by end of burn-in
+			// the down-side is that the phenotype drifts some more
+	}
+	else {
+		f1 = exp(-0.5*((individual.getValue("phenotype0")-optimum1)^2*sigma_K + (individual.getValue("phenotype1")-optimum2)^2*sigma_K));
+                f1_out = paste(c(sim.generation, f1));
+                writeFile(paste(c(path, my_seed, "_", "_Fitness1_2trait_1mut_2env.txt"), sep=""), f1_out, append=T);
+return exp(-0.5*((individual.getValue("phenotype0")-optimum1)^2*sigma_K + (individual.getValue("phenotype1")-optimum2)^2*sigma_K));
+	}
+}
+
+interaction(i1) {
+	exp(-0.5*((exerter.spatialPosition[0] - receiver.spatialPosition[0])^2*sigma_xy + (exerter.spatialPosition[1]- 
+	receiver.spatialPosition[1])^2*sigma_xy + (exerter.getValue("phenotype0") - 
+	receiver.getValue("phenotype0"))^2*sigma_C + (exerter.getValue("phenotype1") - 
+	receiver.getValue("phenotype1"))^2*sigma_C));
+
+}
+
+fitness(NULL) {
+	P = sum(i1.strength(individual));
+	P_out = paste(c(sim.generation, P));
+	writeFile(paste(c(path, my_seed, "_", sigma_K, "_outputP_2trait_1mut_2env.txt"), sep=""), P_out, append=T);
+
+	 // if they are close in space and have similar phenotype, that is max interaction strength
+	if(sim.generation < 1){
+		f = exp( comp_mult*sim.generation*P*((1-P)));
+	}else{
+		f = exp( 0.0009*1*P*((1-P)));
+		// adding interaction strengths between focal individual and other individuals in model
+	}
+	f_out = paste(c(sim.generation, f));
+	writeFile(paste(c(path, my_seed, "_", "_competition_fitness_2trait_1mut_2env.txt"), sep=""), f_out, append=T);
+	return f;
+}
+
+interaction(i2) {
+	exp(-0.5*((exerter.spatialPosition[0] - receiver.spatialPosition[0])^2*sigma_xy + (exerter.spatialPosition[1]- 
+	receiver.spatialPosition[1])^2*sigma_xy + (exerter.getValue("phenotype0") - 
+	receiver.getValue("phenotype0"))^2*sigma_M + (exerter.getValue("phenotype1") - 
+	receiver.getValue("phenotype1"))^2*sigma_M));
+}
+
+mateChoice() {
+	
+	M = sum(i2.strength(individual));
+	M_out = paste(c(sim.generation, M));
+	writeFile(paste(c(path, my_seed, "_", "_mating_fitness_2trait_1mut_2env.txt"), sep=""), M_out, append=T);
+	return i2.strength(individual);
+
+}
+
+/*///////////////////////////
+OUTPUT
+*///////////////////////////
+
+8000 late() {
+pop_id = c();
+env_ind = c();
+
+inds = sim.subpopulations.individuals;
+env=c();
+		for (ind in inds){
+  			env = c(env, p1.spatialMapValue("map1", ind.spatialPosition[0:1]));
+  		}
+env2=c();
+		for (ind in inds){
+			env2 = c(env2, p1.spatialMapValue("map2", ind.spatialPosition[0:1]));
+		}
+  	
+cor = sum((env- mean(env))/sd(env)*(inds.getValue("phenotype0")-mean(inds.getValue("phenotype0")))/sd(inds.getValue("phenotype0")))/(size(inds.getValue("phenotype0"))-1);
+
+cor1_2 = sum((env2- mean(env2))/sd(env2)*(inds.getValue("phenotype0")-mean(inds.getValue("phenotype0")))/sd(inds.getValue("phenotype0")))/(size(inds.getValue("phenotype0"))-1);
+
+cor_2 = sum((env2- mean(env2))/sd(env2)*(inds.getValue("phenotype1")-mean(inds.getValue("phenotype1")))/sd(inds.getValue("phenotype1")))/(size(inds.getValue("phenotype1"))-1);
+
+cor2_1 = sum((env- mean(env))/sd(env)*(inds.getValue("phenotype1")-mean(inds.getValue("phenotype1")))/sd(inds.getValue("phenotype1")))/(size(inds.getValue("phenotype1"))-1);
+
+
+// output simulation stats
+output_sim = "seed "+ getSeed()+ "\n"+
+	//"sample_size "+ size(samp_ind)+ "\n"+
+	//"num_pops "+ size(sample_x)+ "\n"+
+	"corr_phen0_env1_all " + cor + "\n" + 
+	"corr_phen0_env2_all " + cor1_2 + "\n" +
+	//"corr_phen_env_samp " + cor_samp + "\n" +
+	"corr_phen1_env1_all " + cor2_1 + "\n" +
+	"corr_phen1_env2_all " + cor_2 + "\n" +
+	"recomb_rates " + paste(sim.chromosome.recombinationRates, sep=" ") + "\n" +
+	"recomb_rates_end " + paste(sim.chromosome.recombinationEndPositions, sep= " ") + "\n" +
+	"mutation_rate " + sim.chromosome.mutationRates + "\n" +
+	"N " + p1.individualCount + "\n"  
+	;
+
+writeFile(paste(c(path, my_seed,"_", sigma_K, "_outputSim_2trait_1mut_2env.txt"), sep=""), output_sim);
+
+//output all
+//p1.individuals.genomes.outputVCF(paste(c(path,my_seed, "_", sigma_K, "_VCFallsim1.vcf"), sep=""));
+//MAY NEED TO CHANGE LINES BELOW TO REFLECT EFFECTS DRAWN FROM mvnorm
+phenotype = inds.getValue("phenotype0");
+phenotype2 = inds.getValue("phenotype1");
+		
+output_ind = "id " + "x " + "y " + "phenotype0 " + "envi " + "phenotype0-1 " + "phenotype1 " + "envi2 " + "phenotype1-1" + "\n";
+i=0;
+for (ind in p1.individuals){
+   output_ind = output_ind + ind.index + " " + ind.spatialPosition[0] + " " + ind.spatialPosition[1] + " " +    ind.getValue("phenotype0") + " " +  p1.spatialMapValue("map1", ind.spatialPosition[0:1]) + " " + phenotype[i] + " " + ind.getValue("phenotype1") + " " + p1.spatialMapValue("map2", ind.spatialPosition[0:1]) + " " + phenotype2[i] + "\n";
+  	i= i+1;
+}
+
+writeFile(paste(c(path, my_seed, "_", sigma_K, "_outputIndAll_2trait_1mut_2env.txt"), sep=""), output_ind);
+
+// output mutations
+g = sim.subpopulations.genomes;
+
+// get the unique mutations in the sample, sorted by position
+m_1 = sortBy(unique(c(g.mutationsOfType(m1))), "position"); 
+m_2 = sortBy(unique(c(g.mutationsOfType(m2))), "position"); 
+
+m_1_freqs = sim.mutationFrequencies(p1, m_1);
+m_2_freqs = sim.mutationFrequencies(p1, m_2);
+
+out_m_1 = "position " + "selCoef " + "originGen " + "type " + "freq" + "\n";
+
+for(i in 0:(size(m_1)-1)){
+	out_m = out_m_1 + m_1.position[i] +" "+ m_1.selectionCoeff[i]+" " + m_1.originGeneration[i]+" " + "m1 " + m_1_freqs[i] + "\n";
+}
+
+out_m_2 = "position " + "selCoef " + "originGen " + "type " + "freq" + "\n";
+
+for(i in 0:(size(m_2)-1)){
+	out_m_2 = out_m_2 + m_2.position[i] +" "+ m_2.selectionCoeff[i]+" " + m_2.originGeneration[i]+" " + "m2 " + m_2_freqs[i] + "\n";
+}
+
+writeFile(paste(c(path, my_seed,"_", sigma_K ,"_outputMuts1_2trait_1mut_2env.txt"), sep=""), out_m_1);
+
+writeFile(paste(c(path, my_seed,"_", sigma_K ,"_outputMuts2_2trait_1mut_2env.txt"), sep=""), out_m_2);
+
+// output mutation effect sizes
+	m2muts = sim.mutationsOfType(m2);
+	m2freqs = sim.mutationFrequencies(NULL, m2muts);
+	// sort vectors by frequency
+	o = order(m2freqs, ascending=F);
+	m2muts = m2muts[o];
+	m2freqs = m2freqs[o];
+	
+	// get the effect sizes
+	m2e0 = m2muts.getValue("e0");
+	m2e1 = m2muts.getValue("e1");
+	
+	// effect size header
+	out_m2_effects = "QTL mutations" + "\t" + "f" + "\t" + "e0" + "\t" + "e1" + "\n";
+	for(i in seqAlong(m2muts)){
+		mut = m2muts[i];
+ 		f = m2freqs[i];
+ 		e0 = m2e0[i];
+ 		e1 = m2e1[i];
+		out_m2_effects = out_m2_effects + "m2_" + i + "\t" + f + "\t" + e0 + "\t" + e1 + "\n";
+	}
+	writeFile(paste(c(path, my_seed,"_", sigma_K ,"_outputm2effects_2trait_1mut_2env.txt"), sep=""), out_m2_effects);
+
+}
+
+
+8001 late() {
+	sim.simulationFinished();
+}
