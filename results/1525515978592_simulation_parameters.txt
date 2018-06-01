@@ -1,0 +1,12 @@
+sigma_C	0.027
+sigma_K	1.5
+sigma_M	0.5
+sigma_xy	0.25
+sigma_d	0.009
+QTL_cov	0.5
+QTL_var	1.5
+sigma_stat	4
+QTL_prop	0.1
+comp_gen	1
+comp_mult	0.0009
+
