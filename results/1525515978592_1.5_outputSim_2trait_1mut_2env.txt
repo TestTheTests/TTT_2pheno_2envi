@@ -1,0 +1,10 @@
+seed 1525515978592
+corr_phen0_env1_all 0.258087
+corr_phen0_env2_all -0.13987
+corr_phen1_env1_all -0.19699
+corr_phen1_env2_all 0.309543
+recomb_rates 1e-05 0.5 1e-05 0.5 1e-05 0.5 1e-05 0.5 1e-05 0.5 1e-05 0.5 1e-05
+recomb_rates_end 50000 50001 100000 100001 150000 150001 200000 200001 250000 250001 300000 300001 350000
+mutation_rate 1e-06
+N 1000
+
