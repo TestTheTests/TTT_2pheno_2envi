@@ -33,25 +33,25 @@ initialize() {
 	initializeGenomicElementType("g0", c(m1), c(1));
 	initializeGenomicElementType("g1", c(m1, m2), c(0.90, QTL_prop)); //QTL
 	
-	// start chromosome 1
+	// chromosome 1
 	initializeGenomicElement(g1, 0, 50000); // QTL mutations
 	
-	// chrom 2, neut
+	// chromosome 2, neut
 	initializeGenomicElement(g0, 50001, 100000); // neut	
 	
-	// start chromosome 3
+	// chromosome 3
 	initializeGenomicElement(g1, 100001, 150000); // QTL mutations
 	
-	// chrom 4, neut
+	// chromosome 4, neut
 	initializeGenomicElement(g0, 150001, 200000); // neut	
 	
-	// start chromosome 5
+	// chromosome 5
 	initializeGenomicElement(g1, 200001, 250000); // QTL mutations
 	
-	// chrom 6, neut
+	// chromosome 6, neut
 	initializeGenomicElement(g0, 250001, 300000); // neut	
 	
-	// start chromosome 7
+	// chromosome 7
 	initializeGenomicElement(g1, 300001, 350000); // QTL mutations
 	
 	initializeRecombinationRate(c(rep(c(r, 0.5), 6), r), 
