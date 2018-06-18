@@ -13,12 +13,14 @@
 #
 ######################################
 
-# Change working directory and results_path
-# Set working directory
-setwd("~/Desktop/Northeastern/slim/SLiM_R")
+# Set paths to directories
+# TIP: If you git clone this repository, you should just have to change the root path
+root_path <- ("/Users/brettford/Desktop/Northeastern/slim/TTT_2pheno_2envi")
+results_path <- paste0(root_path, "/results/")
+figures_path <- paste0(root_path, "/figures/")
 
-## Set results path
-results_path <- "~/Desktop/Northeastern/slim/SLiM_R"
+# Set working directory
+setwd(results_path)
 
 ##Will have to specify directories relative to TTT_2pheno_2envi when I complete the script
 
@@ -93,8 +95,9 @@ scatterhist <- function(x, y, z, mat, xlab = "", ylab = "", plottitle="",
   effect_corr <- paste("r=", effect_corr)
   rbPal <- colorRampPalette(c('red','blue'))
   pt_colors <- rbPal(10)[as.numeric(cut(z,breaks = 10))]
-  plot(x, y , xlim= c(x_floor, x_ceiling), ylim=c(y_floor, y_ceiling), xaxp= c(x_floor, x_ceiling, x_tick), yaxp= c(y_floor, y_ceili$
+  plot(x, y , xlim= c(x_floor, x_ceiling), ylim=c(y_floor, y_ceiling), xaxp= c(x_floor, x_ceiling, x_tick), yaxp= c(y_floor, y_ceiling, y_tick), pch=19, col=pt_colors, cex=1.5)
   text((x_floor),(y_ceiling-0.25),paste0(effect_corr, "\n", fixed_corr), cex=1.25, pos=4)
+                                                                                                                      
 
   par(mar = c(0.5,0.5,0.5,0.5))
   plot(x=1,y=1,type="n",ylim=c(0,1), xlim=c(0,1), axes = FALSE)
@@ -132,9 +135,9 @@ for (i in effect_size_filenames) {
          var), nrow= 2, ncol = 2)
   qtl_matrix <- paste0(qtl_matrix[1], " ", qtl_matrix[2], "\n", qtl_matrix[3], " ", qtl_matrix[4])
   #Set image details before plotting
-  png(paste0(simulation, "_dist_effect_sizes.png"), width=6, height = 6, units="in", res=500)
-  scatterhist(effects_table$e0, effects_table$e1, effects_table$f, qtl_matrix, xlab="Phenotype0 Effect Size", ylab="Phenotype1 Effe$
-            plottitle=paste(simulation, "Distribution of Effect Sizes"))
+  png(paste0(figures_path,simulation, "_dist_effect_sizes.png"), width=6, height = 6, units="in", res=500)
+  scatterhist(effects_table$e0, effects_table$e1, effects_table$f, qtl_matrix, xlab="Phenotype0 Effect Size", ylab="Phenotype1 Effect Size", 
+              plottitle=paste(simulation, "Distribution of Effect Sizes"))
 
   # write png file
   dev.off()

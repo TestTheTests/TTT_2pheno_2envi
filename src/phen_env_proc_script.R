@@ -5,6 +5,7 @@
 # Created 20180514
 # Added annotations and fixed plot name 20180515 
 # Modified to create two-pane plot to display correlations for both phenotypes
+# 20180618 Changed path lines for convenience when cloning
 #
 # This script takes the PhenEnv files in the results folder
 # and plots the correlation between the phenotypes and environments specified 
@@ -26,9 +27,11 @@
 #
 ######################################
 
-#Change the following to your working directory and results folder within wd
-setwd("/home/br.ford/br.ford_remote/slim")
-results_path <- "/home/br.ford/br.ford_remote/slim/results/"
+# Set paths to directories
+# TIP: If you git clone this repository, you should just have to change the root path
+root_path <- ("/Users/brettford/Desktop/Northeastern/slim/TTT_2pheno_2envi")
+results_path <- paste0(root_path, "/results/")
+figures_path <- paste0(root_path, "/figures/")
 
 #Load libraries
 library(tidyr)
@@ -48,7 +51,7 @@ color_list <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_c
 colors_used <- character()
 
 #Create output parameters for plot before plotting
-png("phen_env_corr.png", width=10, height = 8, units="in", res=500)
+png(paste0(figures_path,"phen_env_corr.png"), width=10, height = 8, units="in", res=500)
 
 #Prepare two-pane plot
 par(mfcol=c(1,2))
