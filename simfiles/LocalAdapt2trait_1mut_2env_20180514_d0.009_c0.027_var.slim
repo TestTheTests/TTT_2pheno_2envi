@@ -28,7 +28,8 @@ initialize() {
 	defineConstant("N", 1000); // samples size
 	defineConstant("r", 1e-05); // recombination rate
 	defineConstant("QTL_prop", 0.1); // proportion of element that is QTL
-	defineConstant("path", "/Users/brettford/Desktop/Northeastern/slim/TTT_2pheno_2envi/results/");
+	defineConstant("root", "/Users/brettford/Desktop/Northeastern/slim/TTT_2pheno_2envi/");
+	defineConstant("path", root + "results/");
 	
 	//initialize dimensions and mutation rate	
 	initializeSLiMOptions(dimensionality="xy"); 
@@ -507,15 +508,20 @@ OUTPUT
 	m2e0 = m2muts.getValue("e0");
 	m2e1 = m2muts.getValue("e1");
 	
+	// get the position and originGen
+	
+	
 	// effect size header
-	out_m2_effects = "QTL mutations" + "\t" + "f" + "\t" + "e0" + "\t" + "e1" + "\n";
+	out_m2_effects = "QTL mutations" + "\t" + "f" + "\t" + "e0" + "\t" + "e1" + "\t" + "position" + "\t" + "originGen" + "\n";
 	
 	for(i in seqAlong(m2muts)){
 		mut = m2muts[i];
  		f = m2freqs[i];
  		e0 = m2e0[i];
  		e1 = m2e1[i];
-		out_m2_effects = out_m2_effects + "m2_" + i + "\t" + f + "\t" + e0 + "\t" + e1 + "\n";
+ 		pos = m2muts.position[i];
+ 		originGen = m2muts.originGeneration[i];
+		out_m2_effects = out_m2_effects + "m2_" + i + "\t" + f + "\t" + e0 + "\t" + e1 + "\t" + pos + "\t" + originGen + "\n";
 	}
 	
 	// write mutational effect size file
