@@ -1,6 +1,6 @@
 ## Input Files
 
-The csv files in this directory are 22 real BC environmental variables interpolated on a 360X360 matrix using the XXXX.R script. These csv files can be used as the environments that individuals adapt to in SLiM simulations.
+The csv files in this directory are 22 real BC environmental variables interpolated on a 360X360 matrix using the XXXX.R script. **The file from which these matrices were interpolated from is MAT06-BLUEs&Climate-pine.csv.** These csv files can be used as the environments that individuals adapt to in SLiM simulations.
 
 #### Environmental variables:
 * AHM\= Annual heat-moisture index (MAT+10)/(MAP/1000))
