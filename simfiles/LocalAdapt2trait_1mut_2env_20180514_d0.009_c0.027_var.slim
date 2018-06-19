@@ -30,6 +30,7 @@ initialize() {
 	defineConstant("QTL_prop", 0.1); // proportion of element that is QTL
 	defineConstant("root", "/Users/brettford/Desktop/Northeastern/slim/TTT_2pheno_2envi/");
 	defineConstant("path", root + "results/");
+	defineConstant("inputpath", root + "inputfiles/");
 	
 	//initialize dimensions and mutation rate	
 	initializeSLiMOptions(dimensionality="xy"); 
@@ -130,15 +131,33 @@ ADD POP AND DEFINE MAPS
 	p1.setSpatialBounds(c(0.0, 0.0, 1.0, 1.0));
 	
 	// map 1 is an adaptive map (after 1000 gen); longitudinal pattern
-	defineConstant("mapValues", rnorm(25, 0, 0.5)+ (rep(c(-1.0,-0.5,0.0,0.5,1.0), 5)));
-	p1.defineSpatialMap("map1", "xy", c(5, 5), mapValues, interpolate=T,
-		valueRange=c(-1.8, 1.8), colors=c("red", "yellow"));
+	// THIS WAS A SIMULATED ENV I USED BEFORE REAL DATA WHEN BUILDING SIMULATION
+	//defineConstant("mapValues", rnorm(25, 0, 0.5)+ (rep(c(-1.0,-0.5,0.0,0.5,1.0), 5)));
+	//p1.defineSpatialMap("map1", "xy", c(5, 5), mapValues, interpolate=T,
+	//	valueRange=c(-1.8, 1.8), colors=c("red", "yellow"));
 	
+	// map 1 is an adaptive map (after 4000 gen); mean annual temperature map
+        matmapLines = rev(readFile(inputpath + "MAT_adaptree_map_360x360.csv"));
+        matmapLines = sapply(matmapLines, "strsplit(applyValue, ',');");
+        matmapValues = asFloat(matmapLines);
+
+        p1.defineSpatialMap("map1", "xy", c(360, 360), matmapValues,
+                valueRange=c(-1.0, 1.0), colors=c("red", "yellow"));
+                
 	/// map 2 is an adaptive map (after 1000 gen); latitudinal pattern
-	defineConstant("map2Values", rnorm(25, 0, 0.5)+ c(rep(1.0, 5), rep(0.5, 5), rep(0.0, 5), rep(-0.5, 5), rep(-1.0, 5)));
-	p1.defineSpatialMap("map2", "xy", c(5, 5), map2Values, interpolate=T,
-		valueRange=c(-1.8, 1.8), colors=c("red", "yellow"));
+	//THIS A SIMULATED SECOND ENV RATHER THAN REAL ENV DATA
+	//defineConstant("map2Values", rnorm(25, 0, 0.5)+ c(rep(1.0, 5), rep(0.5, 5), rep(0.0, 5), rep(-0.5, 5), rep(-1.0, 5)));
+	//p1.defineSpatialMap("map2", "xy", c(5, 5), map2Values, interpolate=T,
+	//	valueRange=c(-1.8, 1.8), colors=c("red", "yellow"));
 	
+	// map 2 is an adaptive map (after 4000 gen); climate-moisture deficit map
+        cmdmapLines = rev(readFile(inputpath + "CMD_adaptree_map_360x360.csv"));
+        cmdmapLines = sapply(cmdmapLines, "strsplit(applyValue, ',');");
+        cmdmapValues = asFloat(cmdmapLines);
+
+        p1.defineSpatialMap("map2", "xy", c(360, 360), cmdmapValues,
+                valueRange=c(-1.0, 1.0), colors=c("red", "yellow"));
+                
 	// map 3 is a static map (1st 4000 gen)
 	defineConstant("map3Values", rep(0.0, 25));
 	p1.defineSpatialMap("map3", "xy", c(5, 5), map3Values, interpolate=T,
