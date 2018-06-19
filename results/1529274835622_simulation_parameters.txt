@@ -1,0 +1,9 @@
+sigma_C	0.027
+sigma_K	1.25
+sigma_M	0.5
+sigma_xy	0.25
+sigma_d	0.009
+QTL_cov	0
+QTL_var	1.25
+sigma_stat	4
+QTL_prop	0.1
