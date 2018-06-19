@@ -7,7 +7,7 @@ The csv files in this directory are 22 real BC environmental variables interpola
 * CMD\= Hargreaves climate-moisture deficit
 * DD0\= Degree-days below 0\°C
 * DD5\= Degree-days above 5\°C
-* EMT\= Extreme minimum temperature over 30 years (\°C)
+* EMT\= Extreme minimum temperature over 30 years (°C)
 * EXT\= Extreme maximum temperature over 30 years (°C)
 * Elevation\= Elevation
 * Eref\= Hargreaves reference evaporation
@@ -15,8 +15,8 @@ The csv files in this directory are 22 real BC environmental variables interpola
 * Latitude\= Latitude
 * Longitude\= Longitude
 * MAT\= Mean annual temperature (°C)
-* MCMT\= Mean coldest month temperature(\°C)
-* MWMT\= Mean warmest month temperature (\°C)
+* MCMT\= Mean coldest month temperature(°C)
+* MWMT\= Mean warmest month temperature (°C)
 * NFFD\= Number of days without frost
 * PAS\= Precipitation as snow (mm)
 * SHM\= Summer heat-moisture index ((MWMT)/(MSP/1000))
