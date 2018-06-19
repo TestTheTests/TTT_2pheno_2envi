@@ -12,7 +12,7 @@ And a chromosome figure:
 
 For example:
 
-![""](/figures/525515978592_dist_effect_sizes.png)
+![""](/figures/1525515978592_dist_effect_sizes.png)
 
 **phen_env_proc_script.R** is a script that takes the PhenEnv files from the simulation outputs to understand whether the individuals are actually adapting to the environment by plotting the correlation between the phenotypes and environments that the phenotypes are adapting to for individuals over the simulation generations. If individuals are adapting, the correlation is expected to be high. Individuals are not set to adapt until 4Ne generations so that they can generate genetic variation.
 
