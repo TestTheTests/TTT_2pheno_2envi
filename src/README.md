@@ -1,4 +1,4 @@
-## Scripts
+## Source Files
 
 **chrom_effects_viz.R** is a R script that takes the m2effects file from simulation outputs and plots where m2 mutations rise in the genome, their effect direction (positive or negative), and their effect size for each phenotype. It writes out plots for the entire genome as well as for each chromosome where m2 mutations arise.
 
