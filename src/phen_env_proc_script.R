@@ -51,7 +51,8 @@ color_list <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_c
 colors_used <- character()
 
 #Create output parameters for plot before plotting
-png(paste0(figures_path,"phen_env_corr.png"), width=10, height = 8, units="in", res=500)
+date <- gsub("-", "", Sys.Date())
+png(paste0(figures_path, date, "_phen_env_corr.png"), width=10, height = 8, units="in", res=500)
 
 #Prepare two-pane plot
 par(mfcol=c(1,2))
